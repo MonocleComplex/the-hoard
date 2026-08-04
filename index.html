@@ -1,8 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'unsafe-inline'">
+<meta name="referrer" content="no-referrer">
 <title>The Hoard</title>
 <meta name="theme-color" content="#0C1D13">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -715,7 +718,17 @@ function openLightbox(shot) {
   box.className = "lightbox";
   box.setAttribute("role", "dialog");
   box.setAttribute("aria-label", shot.cap);
-  box.innerHTML = `<img src="${shot.src}" alt="${esc(shot.cap)}"><div class="lb-cap">${esc(shot.cap)}</div>`;
+
+  const img = document.createElement("img");
+  img.src = shot.src;        // property assignment — never touches innerHTML,
+  img.alt = shot.cap;        // so there's nothing here to remember to escape
+
+  const cap = document.createElement("div");
+  cap.className = "lb-cap";
+  cap.textContent = shot.cap;
+
+  box.append(img, cap);
+
   const close = () => { box.remove(); document.removeEventListener("keydown", onKey); };
   const onKey = e => { if (e.key === "Escape") close(); };
   box.addEventListener("click", close);
@@ -776,7 +789,7 @@ function renderRecipe(id) {
     ${shotSet.map((s, i) => `
     <div class="shot">
       <button class="shot-hex" data-shot="${i}" aria-label="Open photo: ${esc(s.cap)}">
-        <img src="${s.src}" alt="${esc(s.cap)}" loading="lazy">
+        <img src="${esc(s.src)}" alt="${esc(s.cap)}" loading="lazy">
       </button>
       <div class="shot-cap">${esc(s.cap)}</div>
     </div>`).join("")}
