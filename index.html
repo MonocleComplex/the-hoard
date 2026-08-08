@@ -94,6 +94,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--brass-hi); outl
 }
 .tile { flex: 0 0 31%; }
 @media (max-width: 620px) { .tile { flex: 0 0 47%; } }
+.comb-few .tile { flex: 0 0 42%; }
+@media (max-width: 620px) { .comb-few .tile { flex: 0 0 58%; } }
 .tile {
   position: relative; overflow: hidden; aspect-ratio: .866;
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
@@ -518,8 +520,54 @@ const RECIPES = [
       { l: "Chili crisp", x: "Marked to taste for a reason — brands run wildly different in heat. Build the glaze light and baste twice rather than dumping it all in at once." },
       { l: "Adapted from Cafe Delites' honey soy baked chicken thighs", x: "Original runs boneless thighs, oven-baked twenty-five minutes, broiled five. This version stretches the same marinade over a full day's low and slow, then routes the drippings into rice instead of over the top." }
     ]
+  },
+  {
+    id: "chicken-katsu",
+    name: "Chicken Katsu",
+    kind: "Fried",
+    desc: "Flour, egg, panko — the crust that locks on and stays there. Shallow-fried, one confident flip, no babysitting the pan.",
+    base: 4, yieldLabel: "servings", crit: "165°F internal",
+    ingredients: [
+      { amount: 4, unit: null, name: "boneless, skinless chicken breasts, pounded to even thickness" },
+      { amount: 1, unit: "tsp", name: "salt", hold: true },
+      { amount: 0.5, unit: "tsp", name: "black pepper", hold: true },
+      { amount: 1, unit: "cup", name: "all-purpose flour — dredge station 1" },
+      { amount: 2, unit: null, name: "large eggs — dredge station 2" },
+      { amount: 2, unit: "cup", name: "panko breadcrumbs — dredge station 3" },
+      { amount: 1.5, unit: "cup", name: "grapeseed oil, for shallow frying" },
+      { amount: 4, unit: "cup", name: "cabbage, shredded — for serving" },
+      { amount: 4, unit: "cup", name: "steamed rice — for serving" },
+      { amount: 0.5, unit: "cup", name: "tonkatsu sauce — for serving" }
+    ],
+    steps: [
+      { t: "Pound and season", x: "Chicken pounded to an even half inch — thin spots overcook while thick ones lag, and an uneven cutlet fries unevenly no matter how good the crust is. Season both sides with salt and pepper before anything else touches it." },
+      { t: "Set the three stations", x: "Flour in one dish. Eggs whisked in the second — and this is the part that matters: whisk in a teaspoon of the flour along with them. That thickens the wash and gives the panko something more adhesive to grab. Panko in the third, untouched." },
+      { t: "Flour first", x: "Press the cutlet into the flour firmly — don't just dust it, let it really grip the surface. Shake off the excess hard. What's still stuck after that shake is what should be there. Anything extra turns gummy under the egg and lifts later in the oil." },
+      { t: "Egg, then panko", x: "Full dip through the egg wash, fully coated. Then lay it into the panko and let the crumbs fall up around it — <b>don't press it in.</b> Flip, let the top catch the same natural way. Press only at the end, to seal what's already stuck, not to force adhesion that isn't there." },
+      { t: "Let it rest", x: "Onto a rack, minimum five minutes, before any of it sees oil. This isn't optional — the coating needs that time to set. Fry it wet and you're gambling with the crust coming apart in the pan.", timer: 300, tlabel: "5 min minimum" },
+      { t: "Heat the oil", x: "Grapeseed or vegetable, either fries clean — grapeseed's a touch more neutral if that matters to you, vegetable's just as solid and easier on the wallet. Depth should come up at least halfway up the cutlet for a shallow fry. <b>350°F</b>, thermometer in the oil, not a guess." },
+      { t: "Fry — one flip, no babysitting", x: "Cutlet in, away from you. Let it sit and build its crust — no nudging, no peeking under the edge every thirty seconds. One clean, confident flip when the first side's set. <b>Pull at 165°F internal.</b>", timer: 360, tlabel: "check both sides" },
+      { t: "Rest, then slice", x: "Rack again, couple minutes, before the knife touches it. Let the crust set up rather than cutting into it straight from the oil.", timer: 120, tlabel: "2 min rest" },
+      { t: "Plate it", x: "Sliced on the bias. Rice and shredded cabbage alongside, tonkatsu sauce poured over or served on the side — your call at the table." }
+    ],
+    notes: [
+      { l: "The flour-in-egg trick", x: "A teaspoon of flour whisked into the egg wash thickens the bind and locks the panko on tighter than egg alone ever does. Small move, biggest difference in whether the crust survives the fry." },
+      { l: "Don't press the panko", x: "Pressing crumbs into the cutlet feels like it's helping — it isn't. Let them fall and adhere naturally, then press only at the very end to confirm what's already stuck. Forced adhesion doesn't hold better, it just looks like it does until the oil tells the truth." },
+      { l: "The rest before frying", x: "Five minutes on a rack sets the coating. Skip it and you're frying a wet dredge, which is exactly when panko slides off in the oil instead of staying put." }
+    ]
   }
 ];
+
+const CATEGORIES = [
+  { id: "soups-hotpots", name: "Soups & Hotpots", recipes: ["herb-broth", "house-broth"] },
+  { id: "condiments", name: "Condiments", recipes: ["dip-sauce", "chili-oil"] },
+  { id: "grilled", name: "Grilled Foods", recipes: ["pinwheels"] },
+  { id: "crockpot", name: "Crockpot", recipes: ["honey-soy-chicken"] },
+  { id: "stovetop", name: "Stovetop", recipes: ["chicken-katsu"] }
+];
+function categoryOf(recipeId) {
+  return CATEGORIES.find(c => c.recipes.includes(recipeId));
+}
 
 /* ============================================================
    AMOUNTS
@@ -744,14 +792,14 @@ let firstPaint = true;
 
 function renderIndex() {
   let tiles = "";
-  RECIPES.forEach((r, gi) => {
+  CATEGORIES.forEach((c, gi) => {
     tiles += `
 <button class="tile ${gi % 2 === 1 ? "tile-light" : "tile-dark"}"
         style="animation-delay:${(firstPaint ? 1250 : 0) + gi * 90}ms"
-        data-open="${r.id}">
+        data-cat="${c.id}">
   <span class="ridge"></span>
-  <span class="tile-name">${esc(r.name)}</span>
-  <span class="tile-kind">${esc(r.kind)}</span>
+  <span class="tile-name">${esc(c.name)}</span>
+  <span class="tile-kind">${c.recipes.length} in the hoard</span>
 </button>`;
   });
 
@@ -760,7 +808,7 @@ function renderIndex() {
   <div style="display:flex;justify-content:center;margin-bottom:6px">${crestSVG(168, firstPaint)}</div>
   <div class="eyebrow">Guarded at the Stove · Volume One</div>
   <h1 class="wordmark">The <em>Hoard</em></h1>
-  <p class="subline">Six recipes. Gathered, not downloaded.</p>
+  <p class="subline">Tested. Refined. Established.</p>
   <div class="rule"><span></span><i></i><span></span></div>
 </header>
 <div class="comb">${tiles}</div>
@@ -770,8 +818,39 @@ function renderIndex() {
     app.querySelectorAll(".eyebrow,.wordmark,.subline").forEach(el => el.style.opacity = 1);
   }
   firstPaint = false;
+  app.querySelectorAll("[data-cat]").forEach(b =>
+    b.addEventListener("click", () => go({ type: "category", id: b.dataset.cat })));
+  updateEye();
+}
+
+function renderCategory(catId) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  let tiles = "";
+  cat.recipes.forEach((rid, gi) => {
+    const r = RECIPES.find(x => x.id === rid);
+    tiles += `
+<button class="tile ${gi % 2 === 1 ? "tile-light" : "tile-dark"}"
+        style="animation-delay:${gi * 90}ms"
+        data-open="${r.id}">
+  <span class="ridge"></span>
+  <span class="tile-name">${esc(r.name)}</span>
+  <span class="tile-kind">${esc(r.kind)}</span>
+</button>`;
+  });
+
+  app.innerHTML = `
+<button class="back" data-back-index>←&ensp;All categories</button>
+<header class="masthead" style="margin-top:6px">
+  <div style="display:flex;justify-content:center;margin-bottom:6px">${crestSVG(96, false)}</div>
+  <h1 class="wordmark" style="font-size:clamp(30px,7vw,50px)">${esc(cat.name)}</h1>
+  <div class="rule"><span></span><i></i><span></span></div>
+</header>
+<div class="${cat.recipes.length <= 2 ? "comb comb-few" : "comb"}">${tiles}</div>
+<div class="colophon">Tap a scale</div>`;
+
+  app.querySelector("[data-back-index]").addEventListener("click", () => go({ type: "index" }));
   app.querySelectorAll("[data-open]").forEach(b =>
-    b.addEventListener("click", () => go(b.dataset.open)));
+    b.addEventListener("click", () => go({ type: "recipe", id: b.dataset.open })));
   updateEye();
 }
 
@@ -797,7 +876,7 @@ function renderRecipe(id) {
 </div>` : "";
 
   app.innerHTML = `
-<button class="back" data-back>←&ensp;All recipes</button>
+<button class="back" data-back>←&ensp;${esc(categoryOf(r.id) ? categoryOf(r.id).name : "All recipes")}</button>
 
 <div class="r-head">
   <div class="r-spine">${esc(r.kind)}</div>
@@ -882,7 +961,10 @@ ${shotsHTML}
       paintIngredients();
     }));
 
-  app.querySelector("[data-back]").addEventListener("click", () => go(null));
+  app.querySelector("[data-back]").addEventListener("click", () => {
+    const cat = categoryOf(r.id);
+    go(cat ? { type: "category", id: cat.id } : { type: "index" });
+  });
   app.querySelectorAll("[data-shot]").forEach(b =>
     b.addEventListener("click", () => openLightbox(shotSet[+b.dataset.shot])));
 
@@ -903,19 +985,41 @@ function safeReplaceState(hash) {
   } catch (e) { /* sandboxed context — no URL, book still works */ }
 }
 
-function go(id) {
+function hashFor(route) {
+  if (route.type === "index") return "";
+  if (route.type === "category") return "cat-" + route.id;
+  return route.id; // recipe — flat, matches every deep link already handed out
+}
+
+function parseHash() {
+  let h = "";
+  try { h = location.hash.slice(1); } catch (e) { /* sandboxed — treat as empty */ }
+  if (!h) return { type: "index" };
+  if (h.startsWith("cat-")) {
+    const cid = h.slice(4);
+    if (CATEGORIES.some(c => c.id === cid)) return { type: "category", id: cid };
+    return { type: "index" };
+  }
+  if (RECIPES.some(r => r.id === h)) return { type: "recipe", id: h };
+  return { type: "index" };
+}
+
+function go(route) {
   liveTimers.forEach(clearInterval);
   liveTimers.length = 0;
   bus.active = 0; bus.alarms = 0;
 
-  safeReplaceState(id);
-  if (id) renderRecipe(id); else renderIndex();
+  safeReplaceState(hashFor(route));
+  if (route.type === "recipe") renderRecipe(route.id);
+  else if (route.type === "category") renderCategory(route.id);
+  else renderIndex();
   window.scrollTo(0, 0);
 }
 
-let start = "";
-try { start = location.hash.slice(1); } catch (e) { /* sandboxed — start clean */ }
-if (start && RECIPES.some(r => r.id === start)) { firstPaint = false; renderRecipe(start); }
+const startRoute = parseHash();
+if (startRoute.type !== "index") firstPaint = false;
+if (startRoute.type === "recipe") renderRecipe(startRoute.id);
+else if (startRoute.type === "category") renderCategory(startRoute.id);
 else renderIndex();
 </script>
 </body>
